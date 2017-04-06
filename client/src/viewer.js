@@ -18,7 +18,7 @@ export default class Viewer {
       this.ctx.beginPath();
       this.ctx.strokeStyle = 'red';
       this.ctx.strokeWidth = 1;
-      this.ctx.arc(coords.x, coords.y, coords.radius, 0, 2 * Math.PI);
+      this.ctx.rect(coords.x, coords.y, coords.width, coords.height);
       this.ctx.stroke();
     };
 

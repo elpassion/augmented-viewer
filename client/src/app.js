@@ -12,9 +12,12 @@ const modelPresenter = new ModelPresenter(sceneEl, 640, 480);
 modelPresenter.render();
 
 socket.on('frame', (data) => {
-  const { x, y } = data.coords;
+  const { x, y, width, height } = data.coords;
+
+  const posX = x + (width / 2);
+  const posY = y + (height / 2);
 
   viewer.update(data);
 
-  modelPresenter.updateModelPos(x, y);
+  modelPresenter.updateModelPos(posX, posY);
 });
