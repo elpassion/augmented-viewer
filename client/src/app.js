@@ -13,7 +13,7 @@ const sceneEl = document.getElementById('scene');
 const modelPresenter = new ModelPresenter(sceneEl, 640, 480);
 const streamer = new Streamer();
 
-modelPresenter.render();
+modelPresenter.startRender();
 
 streamer.run();
 
@@ -30,5 +30,4 @@ socket.on('frame', (data) => {
   viewer.updateRectCoords(data.coords);
 
   modelPresenter.updateModelPos(posX, posY);
-  modelPresenter.updateModelRotation(width, height);
 });

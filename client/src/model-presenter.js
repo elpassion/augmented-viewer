@@ -1,6 +1,6 @@
 /* global THREE */
 
-const MAX_X_ROTATION = -80;
+const toRadians = angle => angle * (Math.PI / 180);
 
 export default class ModelPresenter {
   constructor(targetEl, width, height) {
@@ -9,7 +9,7 @@ export default class ModelPresenter {
     this.height = height;
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
     this.camera.position.set(0, 0, 50);
 
     this.position = {
@@ -17,8 +17,16 @@ export default class ModelPresenter {
       y: 0
     };
 
+    this.isRotating = false;
+
+    this.prevMousePosition = {
+      x: 0,
+      y: 0
+    };
+
     this.init();
     this.initPlane();
+    this.initMouse();
     this.loadModel();
   }
 
@@ -29,23 +37,16 @@ export default class ModelPresenter {
     this.targetEl.appendChild(this.renderer.domElement);
   }
 
-  initLight() {
-    this.light = new THREE.SpotLight(0xffffff);
-    this.light.position.set(50, 100, 500);
-    this.light.castShadow = true;
-    this.scene.add(this.light);
-  }
-
   initPlane() {
     this.tmpGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1);
     this.tmpGeometry.position = new THREE.Vector3(0, 0, 0);
     this.tmpMesh = new THREE.Mesh(this.tmpGeometry);
   }
 
-  initAxes() {
-    const axes = new THREE.AxisHelper(60);
-    axes.position.set(0, 0, 0);
-    this.scene.add(axes);
+  initMouse() {
+    this.targetEl.addEventListener('mousedown', this.handleMouseDown);
+    this.targetEl.addEventListener('mousemove', this.handleMouseMove);
+    this.targetEl.addEventListener('mouseup', this.handleMouseUp);
   }
 
   loadModel() {
@@ -89,22 +90,50 @@ export default class ModelPresenter {
     }
   }
 
-  updateModelRotation(boundWidth, boundHeight) {
-    const rotationX = Math.round((boundHeight / boundWidth) * MAX_X_ROTATION) - 30;
-
-    if (this.model && rotationX > MAX_X_ROTATION && boundHeight < boundWidth) {
-      this.model.rotation.x = rotationX;
-    }
-  }
-
   setSceneVisibility(isVisible) {
     this.renderer.domElement.style.visibility = (isVisible) ? 'visible' : 'hidden';
   }
 
+  handleMouseDown = () => {
+    this.isRotating = true;
+  };
+
+  handleMouseMove = (e) => {
+    const delta = {
+      x: e.offsetX - this.prevMousePosition.x,
+      y: e.offsetY - this.prevMousePosition.y,
+    };
+
+    if (this.isRotating) {
+      const deltaRotationQuaternion = new THREE.Quaternion()
+        .setFromEuler(new THREE.Euler(
+            toRadians(delta.y * 1),
+            toRadians(delta.x * 1),
+            0,
+            'XYZ'
+          )
+        );
+
+      this.model.quaternion.multiplyQuaternions(deltaRotationQuaternion, this.model.quaternion);
+    }
+
+    this.prevMousePosition = {
+      x: e.offsetX,
+      y: e.offsetY
+    };
+  };
+
+  handleMouseUp = () => {
+    this.isRotating = false;
+  };
+
+  startRender = () => {
+    this.render();
+    requestAnimationFrame(this.startRender);
+  };
+
   render = () => {
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.render(this.scene, this.camera);
-
-    requestAnimationFrame(this.render);
   }
 }
