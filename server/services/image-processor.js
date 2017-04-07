@@ -1,16 +1,33 @@
 const cv = require('opencv');
 
-const lowThresh = 0;
-const highThresh = 100;
+const lowThresh = 100;
+const highThresh = 200;
 const nIters = 2;
 const minArea = 2000;
 
-let rectProps = {
+const defaultRectProps = {
   x: 0,
   y: 0,
   width: 0,
-  height: 0,
+  height: 0
 };
+
+function getRectangle(imgCanny) {
+  const contours = imgCanny.findContours();
+
+  for (let i = 0; i < contours.size(); i += 1) {
+    if (contours.area(i) < minArea) continue;
+
+    const arcLength = contours.arcLength(i, true);
+    contours.approxPolyDP(i, 0.01 * arcLength, true);
+
+    if (contours.cornerCount(i) === 4) {
+      return contours.boundingRect(i);
+    }
+  }
+
+  return defaultRectProps;
+}
 
 function readCamStream(data, onStream) {
   const base64String = data.split(',')[1];
@@ -25,18 +42,7 @@ function readCamStream(data, onStream) {
     imgCanny.canny(lowThresh, highThresh);
     imgCanny.dilate(nIters);
 
-    const contours = imgCanny.findContours();
-
-    for (let i = 0; i < contours.size(); i += 1) {
-      if (contours.area(i) < minArea) continue;
-
-      const arcLength = contours.arcLength(i, true);
-      contours.approxPolyDP(i, 0.01 * arcLength, true);
-
-      if (contours.cornerCount(i) === 4) {
-        rectProps = contours.boundingRect(i);
-      }
-    }
+    const rectProps = getRectangle(imgCanny);
 
     onStream(out.toBuffer(), rectProps);
   });

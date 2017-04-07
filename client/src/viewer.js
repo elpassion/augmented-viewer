@@ -1,9 +1,10 @@
 export default class Viewer {
-  constructor({ fps }) {
+  constructor({ fps, strokeColor = 'rgba(0, 0, 255, 1)' }) {
     this.canvas = document.getElementById('viewer');
     this.ctx = this.canvas.getContext('2d');
 
     this.fps = fps;
+    this.strokeColor = strokeColor;
 
     this.canvas.width = 640;
     this.canvas.height = 480;
@@ -29,7 +30,7 @@ export default class Viewer {
     const { x, y, width, height } = this.boundRect;
 
     this.ctx.beginPath();
-    this.ctx.strokeStyle = 'red';
+    this.ctx.strokeStyle = this.strokeColor;
     this.ctx.strokeWidth = 1;
     this.ctx.rect(x, y, width, height);
     this.ctx.stroke();

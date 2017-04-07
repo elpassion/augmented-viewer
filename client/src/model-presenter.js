@@ -18,7 +18,6 @@ export default class ModelPresenter {
     };
 
     this.init();
-    this.initLight();
     this.initPlane();
     this.loadModel();
   }
@@ -32,7 +31,7 @@ export default class ModelPresenter {
 
   initLight() {
     this.light = new THREE.SpotLight(0xffffff);
-    this.light.position.set(50, 100, 1000);
+    this.light.position.set(50, 100, 500);
     this.light.castShadow = true;
     this.scene.add(this.light);
   }
@@ -54,7 +53,7 @@ export default class ModelPresenter {
     this.loader.load('/models/starwars-tie-fighter.dae', (collada) => {
       this.model = collada.scene;
 
-      // this.setSceneVisibility(false);
+      this.setSceneVisibility(false);
 
       this.scene.add(this.model);
     });
@@ -86,7 +85,7 @@ export default class ModelPresenter {
       this.position.x = posX;
       this.position.y = posY;
 
-      // this.setSceneVisibility(hasPosition);
+      this.setSceneVisibility(hasPosition);
     }
   }
 
