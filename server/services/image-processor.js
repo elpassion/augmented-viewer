@@ -1,18 +1,9 @@
 const cv = require('opencv');
 
-const camWidth = 640;
-const camHeight = 480;
-const fps = 10;
-const camInterval = 1000 / fps;
-
 const lowThresh = 0;
 const highThresh = 100;
 const nIters = 2;
 const minArea = 2000;
-
-const camera = new cv.VideoCapture(0);
-camera.setWidth(camWidth);
-camera.setHeight(camHeight);
 
 let rectProps = {
   x: 0,
@@ -21,8 +12,9 @@ let rectProps = {
   height: 0,
 };
 
-function readCamStream(onStream) {
-  camera.read((err, img) => {
+function readCamStream(data, onStream) {
+  const base64String = data.split(',')[1];
+  cv.readImage(new Buffer(base64String, 'base64'), (err, img) => {
     if (err) throw err;
 
     const out = img.copy();
@@ -50,6 +42,6 @@ function readCamStream(onStream) {
   });
 }
 
-module.exports = (callback) => {
-  setInterval(() => readCamStream(callback), camInterval);
+module.exports = {
+  readStream: readCamStream,
 };

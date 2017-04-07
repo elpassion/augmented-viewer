@@ -1,7 +1,9 @@
 import imageProcessor from '../services/image-processor';
 
 module.exports = (socket) => {
-  imageProcessor((imgBuffer, coords) => {
-    socket.emit('frame', { buffer: imgBuffer, coords });
+  socket.on('frame', ({ data }) => {
+    imageProcessor.readStream(data, (outputBuffer, coords) => {
+      socket.emit('frame', { buffer: outputBuffer, coords });
+    });
   });
 };

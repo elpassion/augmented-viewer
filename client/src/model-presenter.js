@@ -53,7 +53,6 @@ export default class ModelPresenter {
     this.loader = new THREE.ColladaLoader();
     this.loader.load('/models/starwars-tie-fighter.dae', (collada) => {
       this.model = collada.scene;
-      // this.model.rotation.x = -80;
 
       // this.setSceneVisibility(false);
 
