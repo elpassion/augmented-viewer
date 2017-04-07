@@ -1,5 +1,7 @@
 /* global THREE */
 
+const MAX_X_ROTATION = -80;
+
 export default class ModelPresenter {
   constructor(targetEl, width, height) {
     this.targetEl = targetEl;
@@ -41,12 +43,19 @@ export default class ModelPresenter {
     this.tmpMesh = new THREE.Mesh(this.tmpGeometry);
   }
 
+  initAxes() {
+    const axes = new THREE.AxisHelper(60);
+    axes.position.set(0, 0, 0);
+    this.scene.add(axes);
+  }
+
   loadModel() {
     this.loader = new THREE.ColladaLoader();
     this.loader.load('/models/starwars-tie-fighter.dae', (collada) => {
       this.model = collada.scene;
+      // this.model.rotation.x = -80;
 
-      this.setSceneVisibility(false);
+      // this.setSceneVisibility(false);
 
       this.scene.add(this.model);
     });
@@ -78,7 +87,15 @@ export default class ModelPresenter {
       this.position.x = posX;
       this.position.y = posY;
 
-      this.setSceneVisibility(hasPosition);
+      // this.setSceneVisibility(hasPosition);
+    }
+  }
+
+  updateModelRotation(boundWidth, boundHeight) {
+    const rotationX = Math.round((boundHeight / boundWidth) * MAX_X_ROTATION) - 30;
+
+    if (this.model && rotationX > MAX_X_ROTATION && boundHeight < boundWidth) {
+      this.model.rotation.x = rotationX;
     }
   }
 

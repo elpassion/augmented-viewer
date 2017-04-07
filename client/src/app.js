@@ -20,4 +20,5 @@ socket.on('frame', (data) => {
   viewer.update(data);
 
   modelPresenter.updateModelPos(posX, posY);
+  modelPresenter.updateModelRotation(width, height);
 });
