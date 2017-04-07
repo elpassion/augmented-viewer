@@ -2,19 +2,32 @@
 
 import Viewer from './viewer';
 import ModelPresenter from './model-presenter';
+import Streamer from './streamer';
+
+const camFps = 16;
 
 const socket = io('http://localhost:3000');
-const viewer = new Viewer();
+const viewer = new Viewer({ fps: camFps });
 
 const sceneEl = document.getElementById('scene');
 const modelPresenter = new ModelPresenter(sceneEl, 640, 480);
+const streamer = new Streamer();
 
-modelPresenter.render();
+modelPresenter.startRender();
+
+streamer.run();
+
+viewer.run(streamer.videoEl, (data) => {
+  socket.emit('frame', { data });
+});
 
 socket.on('frame', (data) => {
-  const { x, y } = data.coords;
+  const { x, y, width, height } = data.coords;
 
-  viewer.update(data);
+  const posX = x + (width / 2);
+  const posY = y + (height / 2);
 
-  modelPresenter.updateModelPos(x, y);
+  viewer.updateRectCoords(data.coords);
+
+  modelPresenter.updateModelPos(posX, posY);
 });

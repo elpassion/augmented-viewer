@@ -1,39 +1,53 @@
 const cv = require('opencv');
 
-const camWidth = 640;
-const camHeight = 480;
-const fps = 10;
-const camInterval = 1000 / fps;
+const lowThresh = 100;
+const highThresh = 200;
+const nIters = 2;
+const minArea = 2000;
 
-const scaleAlgorithm = 1;
-const minDistance = 30;
-const accThreshold = 40;
+const defaultRectProps = {
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0
+};
 
-const camera = new cv.VideoCapture(0);
-camera.setWidth(camWidth);
-camera.setHeight(camHeight);
+function getRectangle(imgCanny) {
+  const contours = imgCanny.findContours();
 
-function detectCircles(input) {
-  const circles = input.houghCircles(scaleAlgorithm, minDistance, accThreshold);
+  for (let i = 0; i < contours.size(); i += 1) {
+    if (contours.area(i) < minArea) continue;
 
-  return (circles) ? circles[0] || [] : [];
+    const arcLength = contours.arcLength(i, true);
+    contours.approxPolyDP(i, 0.01 * arcLength, true);
+
+    if (contours.cornerCount(i) === 4) {
+      return contours.boundingRect(i);
+    }
+  }
+
+  return defaultRectProps;
 }
 
-function readCamStream(onStream) {
-  camera.read((err, img) => {
+function readCamStream(data, onStream) {
+  const base64String = data.split(',')[1];
+  cv.readImage(new Buffer(base64String, 'base64'), (err, img) => {
     if (err) throw err;
 
     const out = img.copy();
 
     img.convertGrayscale();
-    img.medianBlur(15);
 
-    const [x, y, radius] = detectCircles(img) || [];
+    const imgCanny = img.copy();
+    imgCanny.canny(lowThresh, highThresh);
+    imgCanny.dilate(nIters);
 
-    onStream(out.toBuffer(), { x, y, radius });
+    const rectProps = getRectangle(imgCanny);
+
+    onStream(out.toBuffer(), rectProps);
   });
 }
 
-module.exports = (callback) => {
-  setInterval(() => readCamStream(callback), camInterval);
+module.exports = {
+  readStream: readCamStream,
 };

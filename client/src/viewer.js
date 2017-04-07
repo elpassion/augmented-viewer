@@ -1,27 +1,42 @@
 export default class Viewer {
-  constructor() {
+  constructor({ fps, strokeColor = 'rgba(0, 0, 255, 1)' }) {
     this.canvas = document.getElementById('viewer');
     this.ctx = this.canvas.getContext('2d');
-    this.image = new Image();
+
+    this.fps = fps;
+    this.strokeColor = strokeColor;
 
     this.canvas.width = 640;
     this.canvas.height = 480;
+
+    this.boundRect = {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0
+    };
   }
 
-  update = ({ buffer, coords }) => {
-    const uint8Arr = new Uint8Array(buffer);
-    const str = String.fromCharCode.apply(null, uint8Arr);
-    const base64String = btoa(str);
+  run(video, onUpdate) {
+    setInterval(() => {
+      this.ctx.drawImage(video, 0, 0, this.canvas.width, this.canvas.height);
+      this.updateRect();
 
-    this.image.onload = () => {
-      this.ctx.drawImage(this.image, 0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.beginPath();
-      this.ctx.strokeStyle = 'red';
-      this.ctx.strokeWidth = 1;
-      this.ctx.arc(coords.x, coords.y, coords.radius, 0, 2 * Math.PI);
-      this.ctx.stroke();
-    };
+      onUpdate(this.canvas.toDataURL('image/jpeg'));
+    }, 1000 / this.fps);
+  }
 
-    this.image.src = `data:image/png;base64,${base64String}`;
-  };
+  updateRect() {
+    const { x, y, width, height } = this.boundRect;
+
+    this.ctx.beginPath();
+    this.ctx.strokeStyle = this.strokeColor;
+    this.ctx.strokeWidth = 1;
+    this.ctx.rect(x, y, width, height);
+    this.ctx.stroke();
+  }
+
+  updateRectCoords(coords) {
+    this.boundRect = coords;
+  }
 }
